@@ -3,7 +3,7 @@ import os
 
 class _test_burst_metrics:
     def __init__(self, sset_path):
-        self.burst_metrics = bm.BurstMetrics(sset_path)
+        self.burst_metrics = bm.PpaBurstMetrics(sset_path)
 
 def test_burst_metrics_initialization():
     """
