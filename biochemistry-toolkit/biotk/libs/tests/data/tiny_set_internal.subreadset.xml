@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SubreadSet CreatedAt="2018-01-16T11:02:18" MetaType="PacBio.DataSet.SubreadSet" Name="tiny_set_internal" Tags="" TimeStampedName="pacbio_dataset_subreadset-180116_190218902" UniqueId="962b860c-7460-91a9-5ff1-1d3df9e80c9d" Version="3.0.1" xmlns="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/prototypes/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.subreads.bam" TimeStampedName="pacbio_subreadfile_subreadbamfile-180116_190218901" UniqueId="e39b8059-0bcf-4970-8d0e-dd3271bf40cd">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/prototypes/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.subreads.bam.pbi" TimeStampedName="pacbio_index_pacbioindex-180116_190218901" UniqueId="99ac922c-e3da-4043-b8e8-6295ec23fb4a"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/prototypes/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.subreads.bam.bai" TimeStampedName="pacbio_index_bamindex-180116_190218901" UniqueId="91125997-7002-402f-afa2-ae4437fb5be1"/>
+			</pbbase:FileIndices>
+			<pbbase:ExternalResources>
+				<pbbase:ExternalResource MetaType="PacBio.SubreadFile.ScrapsBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/prototypes/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.scraps.bam" TimeStampedName="pacbio_subreadfile_scrapsbamfile-180116_190218900" UniqueId="f9f3f3ab-6d1a-4fd3-9e5e-4bda1636131c"/>
+			</pbbase:ExternalResources>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<DataSetMetadata>
+		<TotalLength>830241</TotalLength>
+		<NumRecords>2582</NumRecords>
+	</DataSetMetadata>
+</SubreadSet>

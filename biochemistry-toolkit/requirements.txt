@@ -1,0 +1,9 @@
+numpy
+pandas
+pysam
+pbcore
+pbcommand
+git+https://github.com/dalexander/PRmm.git
+git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/sl/pbreports.git
+git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/itg/pbinternal2.git
+git+http://bitbucket.pacificbiosciences.com:7990/scm/~mdsmith/primary-toolkit.git#egg=pricompare

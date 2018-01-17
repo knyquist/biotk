@@ -1,0 +1,4 @@
+[console_scripts]
+taulysis = tools.taulysis.taulysis.main:main
+windchip = scripts.filterChips:main
+

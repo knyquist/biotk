@@ -1,0 +1,7 @@
+numpy
+pandas
+pysam
+pbcore
+git+http://bitbucket.pacificbiosciences.com:7990/scm/itg/pbinternal2.git
+git+https://github.com/dalexander/PRmm.git
+git+http://bitbucket.pacificbiosciences.com:7990/scm/~mdsmith/primary-toolkit.git#egg=primary-toolkit
