@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SubreadSet CreatedAt="2018-01-11T11:08:51" MetaType="PacBio.DataSet.SubreadSet" Name="pacbio_dataset_subreadset-180111_190850897" Tags="" TimeStampedName="pacbio_dataset_subreadset-180111_190850897" UniqueId="e8229174-70b9-c782-7f41-0f746a0baf99" Version="3.0.1" xmlns="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.subreads.bam" TimeStampedName="pacbio_subreadfile_subreadbamfile-180111_190850895" UniqueId="5229f736-158b-46a4-8193-f44e4c4e4e5f">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.subreads.bam.pbi" TimeStampedName="pacbio_index_pacbioindex-180111_190850895" UniqueId="721ddd0b-b30f-47ea-a124-62a1f92a8650"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.subreads.bam.bai" TimeStampedName="pacbio_index_bamindex-180111_190850895" UniqueId="8d738913-92d9-446f-bae4-f8f21508f1fe"/>
+			</pbbase:FileIndices>
+			<pbbase:ExternalResources>
+				<pbbase:ExternalResource MetaType="PacBio.SubreadFile.ScrapsBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.scraps.bam" TimeStampedName="pacbio_subreadfile_scrapsbamfile-180111_190850894" UniqueId="d658f3dc-7c39-4585-9d75-b562dfa210d7">
+					<pbbase:FileIndices>
+						<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.scraps.bam.pbi" TimeStampedName="pacbio_index_pacbioindex-180111_190850895" UniqueId="f449ed9f-6ea2-4469-a02e-e903fca07bea"/>
+						<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/master/biochemistry-toolkit/biotk/tools/taulysis/tests/data/customer_mode_bam/tiny_set_customer.scraps.bam.bai" TimeStampedName="pacbio_index_bamindex-180111_190850895" UniqueId="b8b83d8c-32a4-4925-9036-f43bd7c958fe"/>
+					</pbbase:FileIndices>
+				</pbbase:ExternalResource>
+			</pbbase:ExternalResources>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<DataSetMetadata>
+		<TotalLength>3270298</TotalLength>
+		<NumRecords>280</NumRecords>
+	</DataSetMetadata>
+</SubreadSet>

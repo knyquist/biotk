@@ -1,0 +1,24 @@
+nohup: ignoring input
+INFO:root:Alignmentset expected to be bam format.
+Traceback (most recent call last):
+  File "/pbi/dept/itg/modules/biochemistry-toolkit/0.5/bin/taulysis", line 11, in <module>
+    load_entry_point('biotk==0.4.0', 'console_scripts', 'taulysis')()
+  File "/pbi/dept/itg/modules/biochemistry-toolkit/0.5/lib/python2.7/site-packages/biotk-0.4.0-py2.7.egg/biotk/tools/taulysis/main.py", line 120, in main
+    alignment_set = ut.open_alignment_set(alignments_path, is_legacy)
+  File "/pbi/dept/itg/modules/biochemistry-toolkit/0.5/lib/python2.7/site-packages/biotk-0.4.0-py2.7.egg/biotk/tools/taulysis/utils.py", line 42, in open_alignment_set
+    aset = AlignmentSet(alignments_path)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetIO.py", line 2683, in __init__
+    super(AlignmentSet, self).__init__(*files, **kwargs)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetIO.py", line 1970, in __init__
+    super(ReadSet, self).__init__(*files, **kwargs)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetIO.py", line 398, in __init__
+    populateDataSet(self, files)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetReader.py", line 68, in populateDataSet
+    _addFile(dset, filename)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetReader.py", line 86, in _addFile
+    handledTypes[fileType](dset, fileLocation)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetReader.py", line 131, in _addUnknownFile
+    return _addXmlFile(dset, path)
+  File "/pbi/dept/primary/modules/sw/toolkit/0.7.3/lib/python2.7/site-packages/pbcore/io/dataset/DataSetReader.py", line 102, in _addXmlFile
+    with open(path, 'rb') as xml_file:
+IOError: [Errno 2] No such file or directory: 'alignmentset.xml'
