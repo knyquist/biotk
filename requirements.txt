@@ -1,4 +1,5 @@
 numpy
+plotly
 pandas
 pysam
 pbcore
