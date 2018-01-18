@@ -7,7 +7,6 @@ import operator
 from pbcore.io import (SubreadSet,
                        IndexedBamReader)
 from pricompare import FastMetrics as fm
-import pickle
 
 class PpaBurstMetrics:
     """
