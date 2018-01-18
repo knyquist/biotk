@@ -4,13 +4,10 @@ import numpy as np
 import random
 import string
 import operator
-from pbcore.io import (AlignmentSet,
-                       SubreadSet,
+from pbcore.io import (SubreadSet,
                        IndexedBamReader)
 from pricompare import FastMetrics as fm
-import subprocess
-import xml.etree.ElementTree as ET
-from datetime import datetime
+import pickle
 
 class PpaBurstMetrics:
     """
@@ -21,19 +18,15 @@ class PpaBurstMetrics:
     If required information not available, return None.
     """
     def __init__(self, subread_set_path,
-                       subsampleto=None,
-                       false_negative_burst_length=10):
-        if alignment_set_path:
-            self.alignment_set_path = alignment_set_path
-            self.alignment_set = AlignmentSet(alignment_set_path,
-                                              referenceFastaFname=reference_set_path)
+                       subsampleto=None):
         self.subsampleto = subsampleto
         self.subread_set_path = subread_set_path
-        self.false_negative_burst_length = false_negative_burst_length
         self.subread_set = SubreadSet(subread_set_path)
         self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
-        self.subread_ppa_bursts = self.retrieve_classifier_bursts(self.subread_set)
-        self.scraps_ppa_bursts = self.retrieve_classifier_bursts(self.scraps)
+        self.subread_ppa_bursts = self.retrieve_classifier_bursts(self.subread_set,
+                                                                  'subreads')
+        self.scraps_ppa_bursts = self.retrieve_classifier_bursts(self.scraps,
+                                                                 'scraps')
         self.ppa_bursts = np.hstack((self.subread_ppa_bursts,
                                      self.scraps_ppa_bursts))
 
@@ -57,7 +50,7 @@ class PpaBurstMetrics:
                                                self.subsampleto))
         return zmws
 
-    def retrieve_classifier_bursts(self, dset):
+    def retrieve_classifier_bursts(self, dset, dset_type):
         """
         Retrieve information about the bursts detected by the classifier.
         Returns a recarray with the following columns:
@@ -81,8 +74,10 @@ class PpaBurstMetrics:
         bursts = np.zeros((len(dset), ), dtype=[('zmw', int),
                                                 ('qStart', int),
                                                 ('qEnd', int),
+                                                ('seqType', 'S1'), # seqType -> {H, L, A}
                                                 ('burstStart', int),
                                                 ('burstLength', int),
+                                                ('numShorties', int),
                                                 ('burstStartTime', int),
                                                 ('burstEndTime', int),
                                                 ('previousBasecall', 'S1'),
@@ -98,16 +93,32 @@ class PpaBurstMetrics:
         read_indices = np.flatnonzero(np.in1d(dset.index['holeNumber'], zmws))
         for index in read_indices:
             read = dset[index]
-            bursty_indices = np.flatnonzero(np.array(read.peer.get_tag('pe')) == 2)
+            pe_reason = np.array(read.peer.get_tag('pe'))
+            """convert short-frame exclusions that happen
+            during bursts into burst exclusions"""
+            shorties = np.zeros((len(pe_reason), ), dtype=int)
+            for index in np.arange(1, len(pe_reason)):
+                if pe_reason[index] == 1 and pe_reason[index-1] == 2:
+                    pe_reason[index] = 2
+                    shorties[index] = 1
+
+            bursty_indices = np.flatnonzero(pe_reason == 2)
             bursty_gaps = np.diff(bursty_indices)
-            bursty_breaks = np.flatnonzero(bursty_gaps > self.false_negative_burst_length)
+            bursty_breaks = np.flatnonzero(bursty_gaps > 1)
+
             if bursty_indices.any():
                 bursts['zmw'][burst_count] = read.holeNumber
+                if dset_type == 'subreads':
+                    bursts['seqType'] = 'H'
+                elif dset_type == 'scraps':
+                    bursts['seqType'] = read.scrapType
+                else:
+                    raise IOError('dset type must be either subreads or scraps')
                 bursts['qStart'][burst_count] = read.qStart
                 bursts['qEnd'][burst_count] = read.qEnd
                 start_frames = read.peer.get_tag('sf')
-                bursts['burstStart'][burst_count] = bursty_indices[0]
                 p2b = fm.pls2base(fm.s2npl(read.peer.get_tag('pc')))
+                bursts['burstStart'][burst_count] = bursty_indices[0]
                 index = bursty_indices[0] - 1
                 previous_base_index = p2b[index]
                 while (previous_base_index < 0) and (index >= 0):
@@ -134,6 +145,7 @@ class PpaBurstMetrics:
                         bs = bursts['burstStart'][burst_count]
                         be = (bursts['burstStart'][burst_count] +
                               bursts['burstLength'][burst_count])
+                        bursts['numShorties'][burst_count] = np.sum(shorties[bs:be])
                         burstcalls = list(read.peer.get_tag('pc')[bs:be])
                         for base in bases:
                             f1 = np.divide(len(np.flatnonzero(np.array(burstcalls, 'S') == base)),
@@ -169,6 +181,7 @@ class PpaBurstMetrics:
                      bursts['burstLength'][burst_count])]
                 bs = bursts['burstStart'][burst_count]
                 be = bursts['burstStart'][burst_count] + bursts['burstLength'][burst_count]
+                bursts['numShorties'][burst_count] = np.sum(shorties[bs:be])
                 burstcalls = list(read.peer.get_tag('pc')[bs:be])
                 for base in bases:
                     f1 = np.divide(len(np.flatnonzero(np.array(burstcalls, 'S') == base)),
