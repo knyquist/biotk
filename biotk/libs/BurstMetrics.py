@@ -18,10 +18,11 @@ class PpaBurstMetrics:
     """
     def __init__(self, subread_set_path,
                        subsampleto=None):
-        self.subsampleto = subsampleto
         self.subread_set_path = subread_set_path
         self.subread_set = SubreadSet(subread_set_path)
         self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
+        self.subsampleto = subsampleto
+        self.zmws = self.subsample_zmws()
         self.subread_ppa_bursts = self.retrieve_classifier_bursts(self.subread_set,
                                                                   'subreads')
         self.scraps_ppa_bursts = self.retrieve_classifier_bursts(self.scraps,
@@ -38,14 +39,15 @@ class PpaBurstMetrics:
             arr = np.resize(arr, new_size)
         return arr
 
-    def subsample_zmws(self, dset):
+    def subsample_zmws(self):
         """
         Subsample Zmws for measurement
         """
-        zmws = np.unique(dset.index['holeNumber'])
+        zmws = np.union1d(self.subread_set.index.holeNumber,
+                          self.scraps.index.holeNumber) # scraps index bug should be fixed
         if self.subsampleto is not None:
-            if len(dset) > self.subsampleto:
-                zmws = np.unique(random.sample(dset.index['holeNumber'],
+            if len(zmws) > self.subsampleto:
+                zmws = np.unique(random.sample(zmws,
                                                self.subsampleto))
         return zmws
 
@@ -88,8 +90,7 @@ class PpaBurstMetrics:
         bases = ['a', 'c', 'g', 't']
         burst_count = 0
 
-        zmws = self.subsample_zmws(dset)
-        read_indices = np.flatnonzero(np.in1d(dset.index['holeNumber'], zmws))
+        read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
         for index in read_indices:
             read = dset[index]
             pe_reason = np.array(read.peer.get_tag('pe'))
