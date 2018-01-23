@@ -32,7 +32,7 @@ class PpaBurstMetrics:
             self.zmws = self._subsample_zmws()
             
             results = []
-            # if scraps info was present, scrap that for burst info, too
+            # if scraps info was present, scrape that for burst info, too
             for dset in dsets:
                 ppa_bursts, reads = self.retrieve_classifier_bursts(dset[0], dset[1])
                 results.append((ppa_bursts, reads))
