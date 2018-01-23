@@ -13,26 +13,51 @@ class PpaBurstMetrics:
     Class for retrieving burst metrics. Two flavors
         Alignment based
         HMM Classifier based
-        
+
     If required information not available, return None.
     """
     def __init__(self, subread_set_path,
                        subsampleto=None):
         self.subread_set_path = subread_set_path
         self.subread_set = SubreadSet(subread_set_path)
-        self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
         self.subsampleto = subsampleto
-        self.zmws = self._subsample_zmws()
-        (self.subread_ppa_bursts,
-         self.subread_reads) = self.retrieve_classifier_bursts(self.subread_set,
-                                                               'subreads')
-        (self.scraps_ppa_bursts,
-         self.scrap_reads) = self.retrieve_classifier_bursts(self.scraps,
-                                                              'scraps')
-        self.ppa_bursts = np.hstack((self.subread_ppa_bursts,
-                                     self.scraps_ppa_bursts))
-        self.reads = np.hstack((self.subread_reads,
-                                self.scrap_reads))
+
+        dsets = [(self.subread_set, 'subreads')]
+        # grab path to scraps if available
+        if self.subread_set.externalResources[0].scraps:
+            self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
+            dsets.append((self.scraps, 'scraps'))
+
+        if self._hasPpaBurstInfo(self.subread_set):
+            self.zmws = self._subsample_zmws()
+            
+            results = []
+            # if scraps info was present, scrap that for burst info, too
+            for dset in dsets:
+                ppa_bursts, reads = self.retrieve_classifier_bursts(dset[0], dset[1])
+                results.append((ppa_bursts, reads))
+            if len(results) == 1:
+                self.ppa_bursts = results[0][0]
+                self.reads = results[0][1]
+            elif len(results) == 2:
+                subread_ppa_bursts = results[0][0]
+                subread_reads = results[0][1]
+                scraps_ppa_bursts = results[1][0]
+                scraps_reads = results[1][1]
+                self.ppa_bursts = np.hstack((subread_ppa_bursts,
+                                             scraps_ppa_bursts))
+                self.reads = np.hstack((subread_reads,
+                                        scraps_reads))
+
+    def _hasPpaBurstInfo(self, dset):
+        """
+        Check dataset for presence of 'pe' tag
+        """
+        if (len(dset) > 0 and
+            'pe' in [tag[0] for tag in dset[0].peer.tags]):
+            return True
+        else:
+            return False
 
     def _resize_array(self, arr, index, increase_by):
         """
@@ -47,8 +72,12 @@ class PpaBurstMetrics:
         """
         Subsample Zmws for measurement
         """
-        zmws = np.union1d(self.subread_set.index.holeNumber,
-                          self.scraps.index.holeNumber) # scraps index bug should be fixed
+        if hasattr(self, 'scraps'):
+            zmws = np.union1d(self.subread_set.index.holeNumber,
+                              self.scraps.index.holeNumber) # scraps index bug should be fixed
+        else:
+            zmws = np.unique(self.subread_set.index.holeNumber)
+
         if self.subsampleto is not None:
             if len(zmws) > self.subsampleto:
                 zmws = np.unique(random.sample(zmws,
@@ -76,34 +105,34 @@ class PpaBurstMetrics:
         if 'pe' not in [t[0] for t in dset[0].peer.tags]: # check for burst classification
             return None
 
-        bursts = np.zeros((len(dset), ), dtype=[('zmw', int),
-                                                ('qStart', int),
-                                                ('qEnd', int),
-                                                ('seqType', 'S1'), # seqType -> {H, L, A}
-                                                ('burstStart', int),
-                                                ('burstLength', int),
-                                                ('numShorties', int),
-                                                ('burstStartTime', int),
-                                                ('burstEndTime', int),
-                                                ('previousBasecall', 'S1'),
-                                                ('previousBaseIndex', int),
-                                                ('fractionC', float),
-                                                ('fractionA', float),
-                                                ('fractionT', float),
-                                                ('fractionG', float)])
+        read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
+        bursts = np.zeros((len(self.zmws), ), dtype=[('zmw', int),
+                                                     ('qStart', int),
+                                                     ('qEnd', int),
+                                                     ('seqType', 'S1'), # seqType -> {H, L, A}
+                                                     ('burstStart', int),
+                                                     ('burstLength', int),
+                                                     ('numShorties', int),
+                                                     ('burstStartTime', int),
+                                                     ('burstEndTime', int),
+                                                     ('previousBasecall', 'S1'),
+                                                     ('previousBaseIndex', int),
+                                                     ('fractionC', float),
+                                                     ('fractionA', float),
+                                                     ('fractionT', float),
+                                                     ('fractionG', float)])
         burst_count = 0
 
-        reads = np.zeros((len(dset), ), dtype=[('zmw', int),
-                                               ('seqType', 'S1'),
-                                               ('qStart', int),
-                                               ('qEnd', int),
-                                               ('startTime', int),
-                                               ('endTime', int)])
+        reads = np.zeros((len(read_indices), ), dtype=[('zmw', int),
+                                                       ('seqType', 'S1'),
+                                                       ('qStart', int),
+                                                       ('qEnd', int),
+                                                       ('startTime', int),
+                                                       ('endTime', int)])
         read_count = 0
         
         bases = ['a', 'c', 'g', 't']
 
-        read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
         for index in read_indices:
             read = dset[index]
             
@@ -140,9 +169,11 @@ class PpaBurstMetrics:
             bursty_breaks = np.flatnonzero(bursty_gaps > 1)
 
             if bursty_indices.any():
-                if len(bursts) < burst_count + len(bursty_breaks) + 1:
+                if len(bursts) <= burst_count + len(bursty_breaks) + 1:
                     # resize the bursts table
-                    bursts = self._resize_array(bursts, burst_count, self.subsampleto)
+                    bursts = self._resize_array(bursts,
+                                                burst_count + len(bursty_breaks) + 1,
+                                                len(self.zmws))
 
                 bursts['zmw'][burst_count] = read.holeNumber
                 if dset_type == 'subreads':
