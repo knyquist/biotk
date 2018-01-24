@@ -78,6 +78,10 @@ def parse_args():
                               'This does not affect plotted survival curve,\n'
                               'only the measurement of the termination rate.\n'
                               'Optional flag. Default value is 100 bases'))
+    parser.add_argument('--subsample-to',
+                        default=10000,
+                        help=('Select number of alignments to subsample to.\n'
+                              'Defaults to 10000'))
     parser.add_argument('--legacy',
                         action='store_true',
                         help='Use if running on cmp.h5 (legacy) format')
@@ -93,6 +97,7 @@ def parse_args():
             args.coarse_grain_binsize,
             args.movie_length,
             args.movie_limited_threshold,
+            args.subsample_to,
             args.legacy)
 
 def main():
@@ -109,6 +114,7 @@ def main():
      coarse_grain_binsize,
      movie_length,
      movie_limited_threshold,
+     subsample_to,
      is_legacy) = parse_args()
 
     if is_legacy:
@@ -165,6 +171,7 @@ def main():
                 template_min_start,
                 template_max_start,
                 int(coarse_grain_binsize),
+                int(subsample_to),
                 is_legacy)
 
 
