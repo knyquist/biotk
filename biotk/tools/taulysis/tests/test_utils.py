@@ -1,4 +1,4 @@
-import tools.taulysis.utils as tu
+import biotk.tools.taulysis.utils as tu
 import tempfile
 import os
 

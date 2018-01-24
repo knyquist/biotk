@@ -107,6 +107,7 @@ def get_template_positions(alignment_set,
                            max_start_time,
                            framerate,
                            coarse_grain_binsize,
+                           subsample_to,
                            is_legacy):
     """For a list of alignments, retrieve tStarts, tEnds, and whether
        the alignment was movie-limited (if flagged). If not flagged
@@ -116,7 +117,6 @@ def get_template_positions(alignment_set,
     """
     
     # subsample alignments to speed up measurement
-    subsample_to = 10000
     if len(alignment_ixs) > subsample_to:
         logging.info(('Found ' + str(len(alignment_ixs)) +
                       ' alignments on reference ' +
@@ -367,6 +367,7 @@ def fit_taus(template_position,
 
 def save_taus(alignment_set,
               alignment_indices,
+              original_information,
               cohort_information,
               reference_info,
               taus,
@@ -378,6 +379,7 @@ def save_taus(alignment_set,
     results = {
         'referenceName': str(reference_info['FullName']),
         'nTotalAlignments': len(alignment_indices),
+        'nConsideredAlignments': len(original_information),
         'nCohortAlignments': len(cohort_information),
         'percentMovieLimited': np.divide(
             len(cohort_information[cohort_information['isMovieLimited'] == True]),
@@ -402,6 +404,7 @@ def get_taus(alignment_set,
              template_min_start,
              template_max_start,
              coarse_grain_binsize,
+             subsample_to,
              is_legacy):
     """Perform tau analysis, by reference
        Generate the following plots:
@@ -420,6 +423,7 @@ def get_taus(alignment_set,
     with open(results_file, 'wb') as file:
         fieldnames = ['referenceName',
                       'nTotalAlignments',
+                      'nConsideredAlignments',
                       'nCohortAlignments',
                       'percentMovieLimited',
                       'tau1',
@@ -453,6 +457,7 @@ def get_taus(alignment_set,
                                                  max_start_time,
                                                  framerate,
                                                  coarse_grain_binsize,
+                                                 subsample_to,
                                                  is_legacy)
             pickle.dump(template_position_info, open((output_directory +
                                                       'info_' +
@@ -671,6 +676,7 @@ def get_taus(alignment_set,
                 taus = (tau_1, tau_2, tau_rc)
                 save_taus(alignment_set,
                           aln_to_ref_indices,
+                          template_position_info,
                           clean_termination_info,
                           ref,
                           taus,
