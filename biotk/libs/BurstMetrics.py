@@ -28,6 +28,9 @@ class PpaBurstMetrics:
             self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
             dsets.append((self.scraps, 'scraps'))
 
+        self.ppa_burst_dtypes = self._set_ppa_burst_dtypes() # column info of burst table
+        self.reads_dtypes = self._set_reads_dtypes() # column info of reads table
+
         if self._hasPpaBurstInfo(self.subread_set):
             self.zmws = self._subsample_zmws()
             
@@ -58,6 +61,37 @@ class PpaBurstMetrics:
             return True
         else:
             return False
+
+    def _set_ppa_burst_dtypes(self):
+        """
+        Return columns of the PPA bursts table
+        """
+        return [('zmw', int),
+                ('qStart', int),
+                ('qEnd', int),
+                ('seqType', 'S1'), # seqType -> {H, L, A}
+                ('burstStart', int),
+                ('burstLength', int),
+                ('numShorties', int),
+                ('burstStartTime', int),
+                ('burstEndTime', int),
+                ('previousBasecall', 'S1'),
+                ('previousBaseIndex', int),
+                ('fractionC', float),
+                ('fractionA', float),
+                ('fractionT', float),
+                ('fractionG', float)]
+
+    def _set_reads_dtypes(self):
+        """
+        Return columns of the Reads table
+        """
+        return [('zmw', int),
+                ('seqType', 'S1'),
+                ('qStart', int),
+                ('qEnd', int),
+                ('startTime', int),
+                ('endTime', int)]
 
     def _resize_array(self, arr, index, increase_by):
         """
@@ -106,29 +140,10 @@ class PpaBurstMetrics:
             return None
 
         read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
-        bursts = np.zeros((len(self.zmws), ), dtype=[('zmw', int),
-                                                     ('qStart', int),
-                                                     ('qEnd', int),
-                                                     ('seqType', 'S1'), # seqType -> {H, L, A}
-                                                     ('burstStart', int),
-                                                     ('burstLength', int),
-                                                     ('numShorties', int),
-                                                     ('burstStartTime', int),
-                                                     ('burstEndTime', int),
-                                                     ('previousBasecall', 'S1'),
-                                                     ('previousBaseIndex', int),
-                                                     ('fractionC', float),
-                                                     ('fractionA', float),
-                                                     ('fractionT', float),
-                                                     ('fractionG', float)])
+        bursts = np.zeros((len(self.zmws), ), dtype=self.ppa_burst_dtypes)
         burst_count = 0
 
-        reads = np.zeros((len(read_indices), ), dtype=[('zmw', int),
-                                                       ('seqType', 'S1'),
-                                                       ('qStart', int),
-                                                       ('qEnd', int),
-                                                       ('startTime', int),
-                                                       ('endTime', int)])
+        reads = np.zeros((len(read_indices), ), dtype=self.reads_dtypes)
         read_count = 0
         
         bases = ['a', 'c', 'g', 't']
