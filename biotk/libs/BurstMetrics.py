@@ -25,6 +25,7 @@ class PpaBurstMetrics:
 
         self.subread_set_path = subread_set_path
         self.subread_set = SubreadSet(subread_set_path)
+        self.framerate = self.subread_set.resourceReaders()[0].readGroupTable.FrameRate[0]
         self.subsampleto = subsampleto
 
         dsets = [(self.subread_set, 'subreads')]
@@ -158,10 +159,9 @@ class PpaBurstMetrics:
         bases = ['a', 'c', 'g', 't']
 
         cnt = 0
-        print len(read_indices)
         print ' '
         for index in read_indices:
-            if cnt % 1000 == 0:
+            if cnt % 10000 == 0:
                 log.info(str(float(cnt)/len(read_indices)))
             cnt += 1
 
@@ -297,5 +297,17 @@ class PpaBurstMetrics:
             
         # remove the empty rows
         bursts = bursts[bursts['zmw'] != 0]
+        bursts['burstStartTime'] = np.divide(bursts['burstStartTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
+        bursts['burstEndTime'] = np.divide(bursts['burstEndTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
         reads = reads[reads['zmw'] != 0]
+        reads['startTime'] = np.divide(reads['startTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
+        reads['endTime'] = np.divide(reads['endTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
         return bursts, reads
