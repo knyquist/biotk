@@ -7,6 +7,9 @@ import operator
 from pbcore.io import (SubreadSet,
                        IndexedBamReader)
 from pricompare import FastMetrics as fm
+import logging
+
+log = logging.getLogger(__name__)
 
 class PpaBurstMetrics:
     """
@@ -17,7 +20,9 @@ class PpaBurstMetrics:
     If required information not available, return None.
     """
     def __init__(self, subread_set_path,
+                       zmws=None,
                        subsampleto=None):
+
         self.subread_set_path = subread_set_path
         self.subread_set = SubreadSet(subread_set_path)
         self.subsampleto = subsampleto
@@ -32,11 +37,15 @@ class PpaBurstMetrics:
         self.reads_dtypes = self._set_reads_dtypes() # column info of reads table
 
         if self._hasPpaBurstInfo(self.subread_set):
-            self.zmws = self._subsample_zmws()
+            if zmws is None:
+                self.zmws = self._subsample_zmws()
+            else:
+                self.zmws = zmws
+                log.info('Number of ZMWs ' + str(len(zmws)))
             
             results = []
             # if scraps info was present, scrape that for burst info, too
-            for dset in dsets:
+            for dset in reversed(dsets):
                 ppa_bursts, reads = self.retrieve_classifier_bursts(dset[0], dset[1])
                 results.append((ppa_bursts, reads))
             if len(results) == 1:
@@ -148,7 +157,15 @@ class PpaBurstMetrics:
         
         bases = ['a', 'c', 'g', 't']
 
+        cnt = 0
+        print len(read_indices)
+        print ' '
         for index in read_indices:
+            if cnt % 1000 == 0:
+                log.info(str(float(cnt)/len(read_indices)))
+            cnt += 1
+
+
             read = dset[index]
             
             # Store information about the read being considered
@@ -215,6 +232,12 @@ class PpaBurstMetrics:
                     bursts['previousBaseIndex'][burst_count] = -1
                     bursts['previousBasecall'][burst_count] = 'Z'
                 if bursty_breaks.any():
+                    # This uses sandwich logic. Store the start info for the 
+                    # first burst. If there are additional bursts, scan through
+                    # and store all the info for those. 
+                    # Finally, store the burst end info of the last burst
+                    # If there was a single burst, the for loop would be skipped
+                    # altogether.
                     for bursty_break in bursty_breaks:
                         index = bursty_indices[bursty_break]
                         bursts['burstLength'][burst_count] = index - bursts[
@@ -272,6 +295,7 @@ class PpaBurstMetrics:
                     bursts['fraction' + string.upper(base)][burst_count] = f1 + f2
                 burst_count += 1
             
+        # remove the empty rows
         bursts = bursts[bursts['zmw'] != 0]
         reads = reads[reads['zmw'] != 0]
         return bursts, reads
