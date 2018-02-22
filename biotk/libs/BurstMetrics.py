@@ -7,6 +7,9 @@ import operator
 from pbcore.io import (SubreadSet,
                        IndexedBamReader)
 from pricompare import FastMetrics as fm
+import logging
+
+log = logging.getLogger(__name__)
 
 class PpaBurstMetrics:
     """
@@ -17,9 +20,12 @@ class PpaBurstMetrics:
     If required information not available, return None.
     """
     def __init__(self, subread_set_path,
+                       zmws=None,
                        subsampleto=None):
+
         self.subread_set_path = subread_set_path
         self.subread_set = SubreadSet(subread_set_path)
+        self.framerate = self.subread_set.resourceReaders()[0].readGroupTable.FrameRate[0]
         self.subsampleto = subsampleto
 
         dsets = [(self.subread_set, 'subreads')]
@@ -28,12 +34,19 @@ class PpaBurstMetrics:
             self.scraps = IndexedBamReader(self.subread_set.externalResources[0].scraps)
             dsets.append((self.scraps, 'scraps'))
 
+        self.ppa_burst_dtypes = self._set_ppa_burst_dtypes() # column info of burst table
+        self.reads_dtypes = self._set_reads_dtypes() # column info of reads table
+
         if self._hasPpaBurstInfo(self.subread_set):
-            self.zmws = self._subsample_zmws()
+            if zmws is None:
+                self.zmws = self._subsample_zmws()
+            else:
+                self.zmws = zmws
+                log.info('Number of ZMWs ' + str(len(zmws)))
             
             results = []
             # if scraps info was present, scrape that for burst info, too
-            for dset in dsets:
+            for dset in reversed(dsets):
                 ppa_bursts, reads = self.retrieve_classifier_bursts(dset[0], dset[1])
                 results.append((ppa_bursts, reads))
             if len(results) == 1:
@@ -57,7 +70,39 @@ class PpaBurstMetrics:
             'pe' in [tag[0] for tag in dset[0].peer.tags]):
             return True
         else:
+            log.info('The pe tag is not present, burst info was not annotated')
             return False
+
+    def _set_ppa_burst_dtypes(self):
+        """
+        Return columns of the PPA bursts table
+        """
+        return [('zmw', int),
+                ('qStart', int),
+                ('qEnd', int),
+                ('seqType', 'S1'), # seqType -> {H, L, A}
+                ('burstStart', int),
+                ('burstLength', int),
+                ('numShorties', int),
+                ('burstStartTime', int),
+                ('burstEndTime', int),
+                ('previousBasecall', 'S1'),
+                ('previousBaseIndex', int),
+                ('fractionC', float),
+                ('fractionA', float),
+                ('fractionT', float),
+                ('fractionG', float)]
+
+    def _set_reads_dtypes(self):
+        """
+        Return columns of the Reads table
+        """
+        return [('zmw', int),
+                ('seqType', 'S1'),
+                ('qStart', int),
+                ('qEnd', int),
+                ('startTime', int),
+                ('endTime', int)]
 
     def _resize_array(self, arr, index, increase_by):
         """
@@ -106,34 +151,22 @@ class PpaBurstMetrics:
             return None
 
         read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
-        bursts = np.zeros((len(self.zmws), ), dtype=[('zmw', int),
-                                                     ('qStart', int),
-                                                     ('qEnd', int),
-                                                     ('seqType', 'S1'), # seqType -> {H, L, A}
-                                                     ('burstStart', int),
-                                                     ('burstLength', int),
-                                                     ('numShorties', int),
-                                                     ('burstStartTime', int),
-                                                     ('burstEndTime', int),
-                                                     ('previousBasecall', 'S1'),
-                                                     ('previousBaseIndex', int),
-                                                     ('fractionC', float),
-                                                     ('fractionA', float),
-                                                     ('fractionT', float),
-                                                     ('fractionG', float)])
+        bursts = np.zeros((len(self.zmws), ), dtype=self.ppa_burst_dtypes)
         burst_count = 0
 
-        reads = np.zeros((len(read_indices), ), dtype=[('zmw', int),
-                                                       ('seqType', 'S1'),
-                                                       ('qStart', int),
-                                                       ('qEnd', int),
-                                                       ('startTime', int),
-                                                       ('endTime', int)])
+        reads = np.zeros((len(read_indices), ), dtype=self.reads_dtypes)
         read_count = 0
         
         bases = ['a', 'c', 'g', 't']
 
+        cnt = 0
+        print ' '
         for index in read_indices:
+            if cnt % 10000 == 0:
+                log.info(str(float(cnt)/len(read_indices)))
+            cnt += 1
+
+
             read = dset[index]
             
             # Store information about the read being considered
@@ -200,6 +233,12 @@ class PpaBurstMetrics:
                     bursts['previousBaseIndex'][burst_count] = -1
                     bursts['previousBasecall'][burst_count] = 'Z'
                 if bursty_breaks.any():
+                    # This uses sandwich logic. Store the start info for the 
+                    # first burst. If there are additional bursts, scan through
+                    # and store all the info for those. 
+                    # Finally, store the burst end info of the last burst
+                    # If there was a single burst, the for loop would be skipped
+                    # altogether.
                     for bursty_break in bursty_breaks:
                         index = bursty_indices[bursty_break]
                         bursts['burstLength'][burst_count] = index - bursts[
@@ -257,6 +296,19 @@ class PpaBurstMetrics:
                     bursts['fraction' + string.upper(base)][burst_count] = f1 + f2
                 burst_count += 1
             
+        # remove the empty rows
         bursts = bursts[bursts['zmw'] != 0]
+        bursts['burstStartTime'] = np.divide(bursts['burstStartTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
+        bursts['burstEndTime'] = np.divide(bursts['burstEndTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
         reads = reads[reads['zmw'] != 0]
+        reads['startTime'] = np.divide(reads['startTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
+        reads['endTime'] = np.divide(reads['endTime'],
+                                             self.framerate * 60,
+                                             dtype=float)
         return bursts, reads

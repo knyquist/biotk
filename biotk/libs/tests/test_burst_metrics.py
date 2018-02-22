@@ -4,7 +4,7 @@ import os
 class _test_burst_metrics:
     def __init__(self, sset_path, subsampleto=None):
         self.burst_metrics = bm.PpaBurstMetrics(sset_path,
-                                                subsampleto)
+                                                subsampleto=subsampleto)
 
 def test_burst_metrics_initialization():
     """
