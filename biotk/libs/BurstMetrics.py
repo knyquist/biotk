@@ -70,6 +70,7 @@ class PpaBurstMetrics:
             'pe' in [tag[0] for tag in dset[0].peer.tags]):
             return True
         else:
+            log.info('The pe tag is not present, burst info was not annotated')
             return False
 
     def _set_ppa_burst_dtypes(self):
