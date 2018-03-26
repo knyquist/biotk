@@ -150,7 +150,7 @@ class PpaBurstMetrics:
         if 'pe' not in [t[0] for t in dset[0].peer.tags]: # check for burst classification
             return None
 
-        read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
+        read_indices = np.flatnonzero(np.in1d(dset.index['holeNumber'], self.zmws))
         bursts = np.zeros((len(self.zmws), ), dtype=self.ppa_burst_dtypes)
         burst_count = 0
 
@@ -160,7 +160,6 @@ class PpaBurstMetrics:
         bases = ['a', 'c', 'g', 't']
 
         cnt = 0
-        print ' '
         for index in read_indices:
             if cnt % 10000 == 0:
                 log.info(str(float(cnt)/len(read_indices)))
@@ -192,10 +191,10 @@ class PpaBurstMetrics:
             """convert short-frame exclusions that happen
             during bursts into burst exclusions"""
             shorties = np.zeros((len(pe_reason), ), dtype=int)
-            for index in np.arange(1, len(pe_reason)):
-                if pe_reason[index] == 1 and pe_reason[index-1] == 2:
-                    pe_reason[index] = 2
-                    shorties[index] = 1
+            for j in np.arange(1, len(pe_reason)):
+                if pe_reason[j] == 1 and pe_reason[j-1] == 2:
+                    pe_reason[j] = 2
+                    shorties[j] = 1
 
             bursty_indices = np.flatnonzero(pe_reason == 2)
             bursty_gaps = np.diff(bursty_indices)
@@ -220,11 +219,11 @@ class PpaBurstMetrics:
                 start_frames = read.peer.get_tag('sf')
                 p2b = fm.pls2base(fm.s2npl(read.peer.get_tag('pc')))
                 bursts['burstStart'][burst_count] = bursty_indices[0]
-                index = bursty_indices[0] - 1
-                previous_base_index = p2b[index]
-                while (previous_base_index < 0) and (index >= 0):
-                    index -= 1
-                    previous_base_index = p2b[index]
+                j = bursty_indices[0] - 1
+                previous_base_index = p2b[j]
+                while (previous_base_index < 0) and (j >= 0):
+                    j -= 1
+                    previous_base_index = p2b[j]
                 try:
                     bursts['previousBaseIndex'][burst_count] = previous_base_index
                     bursts['previousBasecall'][burst_count] = read.read(
@@ -240,8 +239,8 @@ class PpaBurstMetrics:
                     # If there was a single burst, the for loop would be skipped
                     # altogether.
                     for bursty_break in bursty_breaks:
-                        index = bursty_indices[bursty_break]
-                        bursts['burstLength'][burst_count] = index - bursts[
+                        j = bursty_indices[bursty_break]
+                        bursts['burstLength'][burst_count] = j - bursts[
                             'burstStart'][burst_count] + 1
                         bursts['burstStartTime'][burst_count] = start_frames[
                             bursts['burstStart'][burst_count]]
@@ -267,11 +266,11 @@ class PpaBurstMetrics:
                         bursts['qEnd'][burst_count] = read.qEnd
                         next_index = bursty_indices[bursty_break + 1]
                         bursts['burstStart'][burst_count] = next_index
-                        index = next_index - 1
-                        previous_base_index = p2b[index]
-                        while (previous_base_index < 0) and (index >= 0):
-                            index -= 1
-                            previous_base_index = p2b[index]
+                        j = next_index - 1
+                        previous_base_index = p2b[j]
+                        while (previous_base_index < 0) and (j >= 0):
+                            j -= 1
+                            previous_base_index = p2b[j]
                         bursts['previousBaseIndex'][burst_count] = previous_base_index
                         bursts['previousBasecall'][burst_count] = read.read(
                             aligned=False)[previous_base_index]
