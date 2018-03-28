@@ -150,7 +150,7 @@ class PpaBurstMetrics:
         if 'pe' not in [t[0] for t in dset[0].peer.tags]: # check for burst classification
             return None
 
-        read_indices = np.flatnonzero(np.in1d(dset.index['holeNumber'], self.zmws))
+        read_indices = np.flatnonzero(np.in1d(dset.index.holeNumber, self.zmws))
         bursts = np.zeros((len(self.zmws), ), dtype=self.ppa_burst_dtypes)
         burst_count = 0
 
@@ -205,7 +205,7 @@ class PpaBurstMetrics:
                     # resize the bursts table
                     bursts = self._resize_array(bursts,
                                                 burst_count + len(bursty_breaks) + 1,
-                                                len(self.zmws))
+                                                len(self.zmws)*10)
 
                 bursts['zmw'][burst_count] = read.holeNumber
                 if dset_type == 'subreads':

@@ -27,6 +27,7 @@ setup(
         'taulysis = biotk.tools.taulysis.main:main',
         'bammend = biotk.tools.bammend.main:main',
         'sequistory = biotk.scripts.screening_history:main',
+        'pbisave = biotk.scripts.extractIndexMetrics:main',
         'curtail = biotk.scripts.rejectBasesByTime:main',
         'windchip = biotk.scripts.filterChips:main',
         'heatmap = biotk.scripts.plotHeatmap:main']})

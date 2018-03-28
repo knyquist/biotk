@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pbds:AlignmentSet CreatedAt="2018-03-26T23:01:35" MetaType="PacBio.DataSet.AlignmentSet" Name="pacbio_dataset_alignmentset-180327_060135932" Tags="" TimeStampedName="pacbio_dataset_alignmentset-180327_060135932" UniqueId="4375cd0b-83a8-894f-30af-fec8242a139a" Version="3.0.1" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.AlignmentFile.AlignmentBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/tests/data/tinyset.alignmentset.bam" TimeStampedName="pacbio_alignmentfile_alignmentbamfile-180327_060135924" UniqueId="e2d7ce2c-b410-4946-ae96-0c6beac234ba">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/tests/data/tinyset.alignmentset.bam.pbi" TimeStampedName="pacbio_index_pacbioindex-180327_060135925" UniqueId="18a28d83-b239-4de8-b189-5d8b85e7136d"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/tests/data/tinyset.alignmentset.bam.bai" TimeStampedName="pacbio_index_bamindex-180327_060135925" UniqueId="e537d04c-be26-47e4-a5f1-515e4c746221"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>946439</pbds:TotalLength>
+		<pbds:NumRecords>89</pbds:NumRecords>
+	</pbds:DataSetMetadata>
+</pbds:AlignmentSet>

@@ -18,4 +18,3 @@ def test_burst_metrics_initialization():
     sset_path = os.path.join(path, sset_name)
     bm = _test_burst_metrics(sset_path, subsampleto=50)
 
-
