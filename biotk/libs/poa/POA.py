@@ -1,9 +1,24 @@
 import sys
-sys.path.append('/pbi/dept/enzymology/Kristofor/repos/poapy')
+sys.path.append('/pbi/dept/enzymology/Kristofor/repos/poapy') # fix this
+import numpy as np
 import random
 import poagraph
 import seqgraphalignment
-import levenshtein_distance as ld
+import logging
+logging.basicConfig()
+log = logging.getLogger(__name__)
+
+try: # try to import ubuntu-compiled ld, then mac, then pure python one (slow)
+    import ubuntu.levenshtein_distance as ld
+    log.info('Running ubuntu-compiled levenshtein code...')
+except ImportError: # ubuntu errored
+    try:
+        import mac.levenshtein_distance as ld
+        log.info('Running mac-compiled levenshtein code...')
+    except ImportError: # mac one errored
+        import levenshtein_distance as ld
+        log.info('Running pure python levenshtein code. Slow!')
+
 
 class POA:
     """
@@ -58,3 +73,42 @@ class POA:
         rev = seq[::-1]
         rc = ''.join([complement[base] for base in rev])
         return rc
+
+
+class PoaWithFeatures(POA):
+    """
+    Takes as input adapter-flanked subreads from
+    a particular ZMW, produces a multiple-sequence
+    alignment using partial-order graphs, and ties
+    in IPD and PW info to each raw subread.
+    """
+
+    def __init__(self, subreads):
+        self.subreads = subreads
+        self.subread_names = np.array([s.readName for s in self.subreads])
+        self.POA = POA(self.subreads)  # generate POA object
+        self.PoaGraph = self.POA.generatePoaGraph()  # perform POA MSA
+        self.PoaStrings = self.PoaGraph.generateAlignmentStrings()  # convert graph to strings
+        self.MSAs = self.PoaStrings[0:-1]
+        self.PluralityConsensus = self.PoaStrings[-1]
+        self.foldInMsaFeatures = self.foldInFeatures()
+
+    def foldInFeatures(self):
+        """
+        For each alignment, connect the by-base features.
+        Each deleted base will have 0 stored for each feature.
+        By-base features include IPD and PW.
+        """
+        feature_vector = []
+        for msa in self.MSAs:
+            read_name = msa[0]
+            sequence = msa[1]
+            base_ixs = np.flatnonzero(np.array(list(sequence)) != '-')
+            raw_subread_ix = np.flatnonzero(self.subread_names == read_name)[0]
+            subread = self.subreads[raw_subread_ix]
+            features = np.zeros((len(sequence),), dtype=[('IPD', int),
+                                                         ('PW', int)])
+            features['IPD'][base_ixs] = subread.IPD(aligned=False)
+            features['PW'][base_ixs] = subread.PulseWidth(aligned=False)
+            feature_vector.append((read_name, features))
+        return feature_vector
