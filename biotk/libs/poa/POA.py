@@ -24,18 +24,31 @@ class POA:
     """
     Generate partial-order alignment from collection of subreads
     """
-    def __init__(self, subreads):
+    def __init__(self, subreads,
+                       ref=None):
         self.subreads = subreads
+        # if ref is populated, perform MSA against the
+        # reference sequence. Otherwise align against
+        # the last subread
+        self.reference = ref
 
     def generatePoaGraph(self):
         """
         Given list of subreads, generate MSA using POA graphs
         """
         subreads = list(self.subreads)
-        root_subread = subreads.pop()
-        self.root_subread = root_subread
-        root_seq = root_subread.read(aligned=False)
-        root_label = root_subread.qName
+        if self.reference:
+            # the seeded sequence is the reference
+            root_subread = self.reference
+            self.root_subread = root_subread
+            root_seq = str(root_subread.sequence)
+            root_label = root_subread.header
+        else:
+            # no reference provided, align against subread
+            root_subread = subreads.pop()
+            self.root_subread = root_subread
+            root_seq = root_subread.read(aligned=False)
+            root_label = root_subread.qName
         graph = poagraph.POAGraph(root_seq, label=root_label)
         for subread in subreads:
             subread_seq = self._check_direction(subread.read(aligned=False), root_seq)
@@ -84,7 +97,7 @@ class PoaWithFeatures(POA):
     """
 
     def __init__(self, subreads):
-        self.subreads = subreads
+        POA.__init__(self, subreads)
         self.subread_names = np.array([s.readName for s in self.subreads])
         self.POA = POA(self.subreads)  # generate POA object
         self.PoaGraph = self.POA.generatePoaGraph()  # perform POA MSA

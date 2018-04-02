@@ -18,7 +18,7 @@ class PhantomDriver:
     """
     def __init__(self, exe):
         self.exe = exe
-        self.phantomjs_driver = None
+        self.phantomjs_river = None
 
     def __enter__(self):
         self.phantomjs_driver = webdriver.PhantomJS(executable_path=self.exe)
