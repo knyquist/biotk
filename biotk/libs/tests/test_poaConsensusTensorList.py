@@ -78,5 +78,6 @@ def test_makeConsensusTensorsRef_FullMode():
     tpctl = setup_func(ref)
     poa_tensor_list = PoaConsensusTensorList(tpctl.poa.subreads,
                                              ref=ref,
+                                             context_width=0,
                                              collection_mode='standard',
                                              subsample_count=None)

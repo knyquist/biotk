@@ -85,7 +85,6 @@ class PoaConsensusTensorList(poa.PoaWithFeatures):
                     continue
                 if n > len(ixs):
                     to_replace = True
-                    print 'here'
                 else:
                     to_replace = False
                 ixs = np.random.choice(ixs, n, replace=to_replace)
@@ -97,9 +96,9 @@ class PoaConsensusTensorList(poa.PoaWithFeatures):
         elif self.collection_mode == 'standard':
             if self.subsample_count < (end - start):
                 n = self.subsample_count
-                loci = np.random.choice(np.arange(start, end+1, 1), n, replace=False)
+                loci = np.random.choice(np.arange(start, end, 1), n, replace=False)
             else:
-                loci = np.arange(start, end+1, 1)
+                loci = np.arange(start, end, 1)
 
         return loci
 
@@ -114,8 +113,19 @@ class PoaConsensusTensorList(poa.PoaWithFeatures):
         :return:
         """
         loci = self._get_tensor_loci()
+        if self.refMSA is not None:
+            labels = np.array(list(self.refMSA[1]))[loci]
+        else:
+            labels = np.array(list(self.PluralityConsensus[1]))[loci]
+        tensors = np.empty((len(loci), ), dtype=object)
+        for index, locus in enumerate(loci):
+            ixs = np.arange(locus - self.context_width,
+                            locus + self.context_width + 1)
+            data = self.feature_vector[1][:, ixs, :]
+            label = self.refMSA[1][locus]
+            tensors[index] = ConsensusTensor(data=data, label=label)
 
-        return None
+        return tensors
 
 class ConsensusTensor:
     """
@@ -129,15 +139,15 @@ class ConsensusTensor:
             /--------------------/ | |
            / fraction calls     /| | |
     ---   /--------------------/ | | |
-     |    | A                 |  | | |
+     |    | -                 |  | | |
      |    |-------------------|  | | |
-     |    | T                 |  | | /  --
+     |    | A                 |  | | /  --
      |    |-------------------|  | |/   /
-     y    | G                 |  | /   /
+     y    | T                 |  | /   /
      |    |-------------------|  |/   z
-     |    | C                 |  /   /
+     |    | G                 |  /   /
      |    |------------------ | /   /
-     |    | -                 |/   /
+     |    | C                 |/   /
     ---   |-------------------/   --
 
           |--------- x --------|
@@ -150,11 +160,32 @@ class ConsensusTensor:
     dimension of z set by number of features (i.e. fraction, IPD, and PW)
 
     The tensor is structured (row, col, depth) -> (y, x, z), as a normal
-    numpy recarray
+    numpy array
 
     """
-    def __init__(self, context_width):
+    def __init__(self, data,
+                       label):
         """
         Initialize ConsensusTensor object
         """
-        self.tensor = np.zeros((5, 1 + 2 * context_width, 3))
+        self.tensor = self.populateTensor(data)  # np.zeros((5, 1 + 2 * context_width, 3))
+        self.label = label
+
+    def populateTensor(self, data):
+        """
+        Use the data to populate and return the consensus tensor
+        :return:
+        """
+        nrows = 5
+        ncols = data.shape[1]
+        nlayers = data.shape[2]
+        tensor = np.zeros((nrows, ncols, nlayers), dtype=float)
+        for col_index, col in enumerate(data[:, :, 0].T):
+            bases, indices, counts = np.unique(col, return_inverse=True, return_counts=True)
+            tensor[bases, col_index, 0] = np.divide(counts, np.sum(counts), dtype=float)
+            for base in bases:
+                row_indices = np.flatnonzero(data[:, col_index, 0] == base)
+                tensor[base, col_index, 1] = np.sum(data[row_indices, col_index, 1])
+                tensor[base, col_index, 2] = np.sum(data[row_indices, col_index, 2])
+
+        return tensor

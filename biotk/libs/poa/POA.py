@@ -50,8 +50,8 @@ class POA:
             root_label = root_subread.qName
         graph = poagraph.POAGraph(root_seq, label=root_label)
         for subread in subreads:
-            # uses levenshtein distance to determine if sequence should be reverse-complemented
-            # before being added to the POA MSA
+            # uses levenshtein distance to determine if sequence should
+            # be reverse-complemented before being added to the POA MSA
             subread_seq = self._check_direction(subread.read(aligned=False), root_seq)
 
             subread_label = subread.qName
@@ -96,7 +96,6 @@ class PoaWithFeatures(POA):
     alignment using partial-order graphs, and ties
     in IPD and PW info to each raw subread.
     """
-
     def __init__(self, subreads,
                        ref=None):
         POA.__init__(self, subreads,
@@ -111,24 +110,39 @@ class PoaWithFeatures(POA):
             self.MSAs = self.PoaStrings[0:-1]
             self.refMSA = None
         self.PluralityConsensus = self.PoaStrings[-1]
-        self.foldInMsaFeatures = self.foldInFeatures()
+        self.feature_vector = self.foldInFeatures()
+        self.baseOrder = ['-ATGC']
+
+    def _baseOrder(self, base):
+        """
+        Construct dictionary encoding base string to integer
+        :return:
+        """
+        base_order = {'-': 0, 'A': 1, 'T': 2, 'G': 3, 'C': 4}
+        return base_order[base]
 
     def foldInFeatures(self):
         """
         For each alignment, connect the by-base features.
         Each deleted base will have 0 stored for each feature.
-        By-base features include IPD and PW.
+        By-base features include PW and IPD.
+
+        The first layer in the feature_vector encodes the base-identity
+        The second layer in the feature_vector encodes the PW (in frames)
+        The third layer in the feature_vector encodes the IPD (in frames)
         """
-        feature_vector = []
-        for msa in self.MSAs:
+        if len(self.MSAs) > 0:
+            feature_vector = np.zeros((len(self.MSAs), len(self.MSAs[0][1]), 3), dtype=int)
+            read_labels = []
+        for row_index, msa in enumerate(self.MSAs):
             read_name = msa[0]
+            read_labels.append(read_name)
             sequence = msa[1]
             base_ixs = np.flatnonzero(np.array(list(sequence)) != '-')
             raw_subread_ix = np.flatnonzero(self.subread_names == read_name)[0]
             subread = self.subreads[raw_subread_ix]
-            features = np.zeros((len(sequence),), dtype=[('IPD', int),
-                                                         ('PW', int)])
-            features['IPD'][base_ixs] = subread.IPD(aligned=False)
-            features['PW'][base_ixs] = subread.PulseWidth(aligned=False)
-            feature_vector.append((read_name, features))
-        return feature_vector
+            feature_vector[row_index, :, 0] = map(self._baseOrder, sequence)
+            feature_vector[row_index, base_ixs, 1] = subread.PulseWidth(aligned=False)
+            feature_vector[row_index, base_ixs, 2] = subread.IPD(aligned=False)
+
+        return read_labels, feature_vector
