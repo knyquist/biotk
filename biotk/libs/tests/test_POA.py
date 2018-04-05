@@ -63,7 +63,6 @@ def test_generatePoaGraph():
     test_poa = setup_func(ref=ref)
     test_poa.poa.generatePoaGraph()
 
-
 @with_setup(setup_func)
 def test_check_direction():
     """

@@ -24,4 +24,3 @@ def test_foldInFeatures():
     """
     tpwf = setup_func()
     tpwf.connectIpdAndPw().foldInFeatures()
-

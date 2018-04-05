@@ -1,7 +1,6 @@
 import sys
 sys.path.append('/pbi/dept/enzymology/Kristofor/repos/poapy') # fix this
 import numpy as np
-import random
 import poagraph
 import seqgraphalignment
 import logging
@@ -51,6 +50,8 @@ class POA:
             root_label = root_subread.qName
         graph = poagraph.POAGraph(root_seq, label=root_label)
         for subread in subreads:
+            # uses levenshtein distance to determine if sequence should be reverse-complemented
+            # before being added to the POA MSA
             subread_seq = self._check_direction(subread.read(aligned=False), root_seq)
 
             subread_label = subread.qName
@@ -96,13 +97,19 @@ class PoaWithFeatures(POA):
     in IPD and PW info to each raw subread.
     """
 
-    def __init__(self, subreads):
-        POA.__init__(self, subreads)
+    def __init__(self, subreads,
+                       ref=None):
+        POA.__init__(self, subreads,
+                           ref)
         self.subread_names = np.array([s.readName for s in self.subreads])
-        self.POA = POA(self.subreads)  # generate POA object
-        self.PoaGraph = self.POA.generatePoaGraph()  # perform POA MSA
+        self.PoaGraph = self.generatePoaGraph()  # perform POA MSA
         self.PoaStrings = self.PoaGraph.generateAlignmentStrings()  # convert graph to strings
-        self.MSAs = self.PoaStrings[0:-1]
+        if ref is not None:
+            self.MSAs = self.PoaStrings[1:-1]
+            self.refMSA = self.PoaStrings[0]
+        else:
+            self.MSAs = self.PoaStrings[0:-1]
+            self.refMSA = None
         self.PluralityConsensus = self.PoaStrings[-1]
         self.foldInMsaFeatures = self.foldInFeatures()
 
