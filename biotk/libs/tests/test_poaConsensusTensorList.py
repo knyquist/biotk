@@ -1,8 +1,10 @@
 from biotk.libs.poa.ConsensusTensor import PoaConsensusTensorList
 from biotk.libs.tests.test_PoaWithFeatures import TestPoaWithFeatures
-from pbcore.io import ReferenceSet
+from pbcore.io import (ReferenceSet, SubreadSet)
 import numpy as np
 from nose.tools import with_setup
+import pandas as pd
+import random
 
 
 class TestPoaConsensusTensorList(TestPoaWithFeatures):
@@ -78,6 +80,18 @@ def test_makeConsensusTensorsRef_FullMode():
     tpctl = setup_func(ref)
     poa_tensor_list = PoaConsensusTensorList(tpctl.poa.subreads,
                                              ref=ref,
-                                             context_width=0,
+                                             context_width=1,
                                              collection_mode='standard',
-                                             subsample_count=None)
+                                             subsample_count=15)
+
+def test_tmp():
+    sset_path = '/pbi/dept/itg/zia/projects/3914/conditions/A/subreads/input.subreadset.xml'
+    sset = SubreadSet(sset_path)
+    rset_path = '/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/libs/tests/data/references/All4mers_InsertOnly.ReferenceSet.xml'
+    rset = ReferenceSet(rset_path)
+    df = pd.DataFrame.from_records(sset.index)
+    gb = df.groupby(by=['holeNumber'])
+    df = gb.get_group(31195616)
+    df[df['contextFlag'] == 3]
+    subreads = [sset[i] for i in df.index]
+    tmp = PoaConsensusTensorList(subreads, context_width=1, collection_mode='equal-state', subsample_count=10)

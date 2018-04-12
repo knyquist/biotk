@@ -1,5 +1,4 @@
 import POA as poa
-import pandas as pd
 import numpy as np
 import logging
 
@@ -122,7 +121,7 @@ class PoaConsensusTensorList(poa.PoaWithFeatures):
             ixs = np.arange(locus - self.context_width,
                             locus + self.context_width + 1)
             data = self.feature_vector[1][:, ixs, :]
-            label = self.refMSA[1][locus]
+            label = labels[index]
             tensors[index] = ConsensusTensor(data=data, label=label)
 
         return tensors
@@ -162,23 +161,25 @@ class ConsensusTensor:
     The tensor is structured (row, col, depth) -> (y, x, z), as a normal
     numpy array
 
+    The cumulative durations (IPD and PW) are z-scored according to by-base
+    kinetic distributions
     """
     def __init__(self, data,
                        label):
         """
         Initialize ConsensusTensor object
         """
-        self.tensor = self.populateTensor(data)  # np.zeros((5, 1 + 2 * context_width, 3))
+        self.tensor = self._populateTensor(data)  # np.zeros((5, 1 + 2 * context_width, 3))
         self.label = label
 
-    def populateTensor(self, data):
+    def _populateTensor(self, data):
         """
         Use the data to populate and return the consensus tensor
         :return:
         """
-        nrows = 5
-        ncols = data.shape[1]
-        nlayers = data.shape[2]
+        nrows = 5  # number of states {'-', 'A', 'T', 'G', 'C'}
+        ncols = data.shape[1]  # 1 + 2 * context_width
+        nlayers = data.shape[2]  # number of features (fraction, IPD, PW)
         tensor = np.zeros((nrows, ncols, nlayers), dtype=float)
         for col_index, col in enumerate(data[:, :, 0].T):
             bases, indices, counts = np.unique(col, return_inverse=True, return_counts=True)

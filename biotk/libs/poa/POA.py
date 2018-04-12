@@ -103,6 +103,10 @@ class PoaWithFeatures(POA):
         self.subread_names = np.array([s.readName for s in self.subreads])
         self.PoaGraph = self.generatePoaGraph()  # perform POA MSA
         self.PoaStrings = self.PoaGraph.generateAlignmentStrings()  # convert graph to strings
+        # only allow one consensus sequence
+        while self.PoaStrings[-1][0] != 'Consensus0':
+            self.PoaStrings.pop()
+
         if ref is not None:
             self.MSAs = self.PoaStrings[1:-1]
             self.refMSA = self.PoaStrings[0]
