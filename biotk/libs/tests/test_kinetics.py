@@ -32,4 +32,4 @@ def test__getSubreadIndices():
 def test_getKinetics():
     test_kin = setup_func(nreads=10,
                           unique_zmws=False)
-    test_kin.kinetics.getKinetics()
+    test_kin.kinetics.summarizeKinetics()

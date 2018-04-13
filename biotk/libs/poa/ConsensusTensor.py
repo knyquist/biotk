@@ -1,14 +1,125 @@
 import POA as poa
 import numpy as np
+import pandas as pd
 import logging
+from pbcore.io import (SubreadSet,
+                       ReferenceSet)
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
 
-class PoaConsensusTensorList(poa.PoaWithFeatures):
+class SubreadSetCircularConsensusTensors:
+    """
+    Class constructs ConsensusTensorLists from ZMWs in a particular
+    subreadset.
+
+    :param sset_path: path to SubreadSet. Only required input.
+    :param ref: Reference entry (from ReferenceSet). None uses a randomly-selected subread
+                as root_read for MSA.
+    :param n_zmws_sample: Number of ZMWs to produce ConsensusTensorLists. None uses all
+                          ZMWs.
+    :param min_coverage_depth: Minimum required coverage. Defaults to depth of 3.
+    :param coverage_depth: Specific coverage slice. If selected ZMW has higher coverage,
+                           subreads are randomly subsample to coverage_depth value. None
+                           does not apply filter, and lets everything > min_coverage_depth
+                           through.
+    :param tensors_context_width: see definition in ConsensusTensor class docstring
+    :param tensors_collection_mode: two options, 'standard' and 'equal-state'. The 'equal-state'
+                                    mode returns a roughly equal proportion of {A, T, G, C, -}
+                                    examples. Standard mode makes no attempt to do so.
+    :param tensors_subsample_count: returns a particular number of randomly-selected
+                                    ConsensusTensor objects. If more samples are requested than
+                                    exist, returns max possible number.
+    :param kinetics_summary: IPD and PW summary stats for rescaling the IPD and PW slices of
+                             each ConsensusTensor. The kinetics class from QuickKinetics is
+                             probably useful here. Expected data structure matches returned
+                             datastructure of kinetics.summarizeKinetics() from the
+                             QuickKinetics.py.
+
+    """
+
+    def __init__(self, sset_path,
+                       ref=None,
+                       n_zmws_sample=None,
+                       min_coverage_depth=3,
+                       coverage_depth=None,
+                       tensors_context_width=0,
+                       tensors_collection_mode='standard',
+                       tensors_per_poa=None,
+                       kinetics_summary=None):
+
+        self.sset_path = sset_path
+        self.sset = SubreadSet(sset_path)
+        self.pbi = pd.DataFrame.from_records(self.sset.index)
+        self.ref = ref
+        self.n_zmws_sample = n_zmws_sample
+        self.min_coverage_depth = min_coverage_depth
+        self.coverage_depth = coverage_depth
+        self.tensors_context_width = tensors_context_width
+        self.tensors_collection_mode = tensors_collection_mode
+        self.tensors_per_poa = tensors_per_poa
+        self.kinetics_summary = kinetics_summary
+        self.zmws = self.selectZMWs()
+        self.consensus_tensor_lists = self.makeConsensusTensorLists()
+
+    def filterSubreads(self, subreads_pbi):
+        """
+        Using index information of a collection of subreads, select the subset
+        to be used for downstream consensus calling.
+
+        :param subreads_pbi:
+        :return:
+        """
+        if self.coverage_depth is not None:
+            if subreads_pbi.shape[0] > self.coverage_depth:
+                subreads_pbi = subreads_pbi.sample(self.coverage_depth)
+
+        subread_ixs = subreads_pbi.index
+        return subread_ixs
+
+    def makeConsensusTensorLists(self):
+        """
+        For each selected ZMW, generate its respective ConsensusTensorList
+        :return:
+        """
+        consensus_tensor_lists = {}
+        gb = self.pbi.groupby(by=['holeNumber'])
+        for zmw in self.zmws:
+            gb.groups[zmw]
+            subreads_pbi = self.pbi.iloc[gb.groups[zmw]]
+            subreads_pbi = subreads_pbi[subreads_pbi['contextFlag'] == 3]  # make sure adapters flank
+            subread_indices = self.filterSubreads(subreads_pbi)
+            subreads = self.sset[list(subread_indices)]
+            tensor_list = ConsensusTensorList(subreads,
+                                              ref=self.ref,
+                                              context_width=self.tensors_context_width,
+                                              collection_mode=self.tensors_collection_mode,
+                                              subsample_count=self.tensors_per_poa)
+            consensus_tensor_lists[zmw] = tensor_list
+
+        return consensus_tensor_lists
+
+
+    def selectZMWs(self):
+        """
+        Select ZMWs to grab list of consensus tensors from. Enforce that included
+        subreads must have flanking adapters and that there are at least the specified
+        number of subreads per ZMW.
+
+        :return: list of ZMWs
+        """
+        pbi = self.pbi[self.pbi['contextFlag'] == 3]  # make sure adapters seen on both sides
+        gb = pbi.groupby(by=['holeNumber'])
+        group_sizes = gb.size()
+        zmws = group_sizes[group_sizes > self.min_coverage_depth].keys()
+        zmws = np.random.choice(np.array(zmws), self.n_zmws_sample)
+        return zmws
+
+
+class ConsensusTensorList(poa.PoaWithFeatures):
     """
     Class constructs list of ConsensusTensor objects from list of
-    subreads
+    subreads, intended to be from same ZMW, or at least from same sequence.
     """
     def __init__(self, subreads,
                        ref=None,
