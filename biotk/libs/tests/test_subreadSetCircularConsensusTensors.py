@@ -47,7 +47,7 @@ def test_subreadset_circular_consensus_tensors():
         n_zmws_sample=3,
         min_coverage_depth=3,
         coverage_depth=5,
-        tensors_context_width=0,
+        tensors_context_width=1,
         tensors_collection_mode='standard',
         tensors_per_poa=None,
         kinetics_summary=kin_summary

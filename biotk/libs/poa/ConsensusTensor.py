@@ -77,6 +77,47 @@ class SubreadSetCircularConsensusTensors:
         subread_ixs = subreads_pbi.index
         return subread_ixs
 
+    def rescaleTensors(self, tensor_list):
+        """
+        If kinetics summary info was provided, rescale the kinetics by average behavior
+
+        :return: tensor list
+        """
+        if self.kinetics_summary is None:
+            return tensor_list
+
+        # PWs are the first layer
+        for index, tensor in enumerate(tensor_list.consensus_tensor_list):
+            k = self.kinetics_summary
+            # reindex if kinetics summary has different base order than tensor.
+            # For speed, do a bunch of numpy-specific matrix manipulation to
+            # carry out the by-element division.
+            # The concept is simple, however. Divide each cumulative sum of base
+            # frames by the mean number of frames per PW and IPD, respectively.
+            # This weights the kinetics in terms of coverage.
+
+            # Start with PWs
+            k = k.reindex(list(tensor_list.baseOrder[0]))
+            cum_pws = tensor.tensor[:, :, 1]
+            cum_pws.ravel()
+            mean_pws = k['PW_mean'].ravel()
+            repeats = cum_pws.size / mean_pws.size
+            mean_pws = np.repeat(mean_pws, repeats).reshape(cum_pws.shape)
+            tensor.tensor[:, :, 1] = cum_pws / mean_pws
+
+            # Do the same with IPDs
+            cum_ipds = tensor.tensor[:, :, 2]
+            cum_ipds.ravel()
+            mean_ipds = k['IPD_mean'].ravel()
+            repeats = cum_ipds.size / mean_ipds.size
+            mean_ipds = np.repeat(mean_ipds, repeats).reshape(cum_ipds.shape)
+            tensor.tensor[:, :, 2] = cum_ipds / mean_ipds
+
+            # update the list item
+            tensor_list.consensus_tensor_list[index] = tensor
+
+        return tensor_list
+
     def makeConsensusTensorLists(self):
         """
         For each selected ZMW, generate its respective ConsensusTensorList
@@ -95,6 +136,7 @@ class SubreadSetCircularConsensusTensors:
                                               context_width=self.tensors_context_width,
                                               collection_mode=self.tensors_collection_mode,
                                               subsample_count=self.tensors_per_poa)
+            tensor_list = self.rescaleTensors(tensor_list)
             consensus_tensor_lists[zmw] = tensor_list
 
         return consensus_tensor_lists
