@@ -150,7 +150,16 @@ class PpaBurstMetrics:
         if 'pe' not in [t[0] for t in dset[0].peer.tags]: # check for burst classification
             return None
 
-        read_indices = np.flatnonzero(np.in1d(dset.index['holeNumber'], self.zmws))
+        # these if/else statements are here because
+        # of a bug in scraps. The index array returns
+        # a list of tuple (all identical values) when
+        # trying to access dset.index['holeNumber']
+        if dset_type == 'subreads':
+            holeNumbers = dset.index['holeNumber']
+        elif dset_type == 'scraps':
+            holeNumbers = dset.holeNumber
+        read_indices = np.flatnonzero(np.in1d(holeNumbers,
+                                              self.zmws))
         bursts = np.zeros((len(self.zmws), ), dtype=self.ppa_burst_dtypes)
         burst_count = 0
 
@@ -218,7 +227,6 @@ class PpaBurstMetrics:
                 bursts['qEnd'][burst_count] = read.qEnd
                 start_frames = read.peer.get_tag('sf')
                 p2b = fm.pls2base(fm.s2npl(read.peer.get_tag('pc')))
-                print p2b
                 bursts['burstStart'][burst_count] = bursty_indices[0]
                 j = bursty_indices[0] - 1
                 previous_base_index = p2b[j]

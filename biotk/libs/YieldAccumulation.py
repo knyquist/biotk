@@ -57,6 +57,7 @@ class SequencingYield:
             raise IOError('Did not recognize filename extension') 
 
     def _openCmpH5(self, aset_path):
+        print aset_path
         return CmpH5Reader(aset_path), True
 
     def _openAlignmentSet(self, aset_path):
