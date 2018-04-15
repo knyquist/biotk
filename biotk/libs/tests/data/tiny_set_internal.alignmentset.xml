@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pbds:AlignmentSet CreatedAt="2018-04-02T09:48:55" MetaType="PacBio.DataSet.AlignmentSet" Name="pacbio_dataset_alignmentset-180402_164855928" Tags="" TimeStampedName="pacbio_dataset_alignmentset-180402_164855928" UniqueId="d76768cf-2550-9df1-3a6a-5bcf969d0ce9" Version="3.0.1" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.AlignmentFile.AlignmentBamFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.alignmentset.bam" TimeStampedName="pacbio_alignmentfile_alignmentbamfile-180402_164855926" UniqueId="35c01da6-42ad-4e61-bc1a-acc1a2d08a4d">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.alignmentset.bam.pbi" TimeStampedName="pacbio_index_pacbioindex-180402_164855926" UniqueId="847eda2c-d601-4e84-9b1a-37f9fbe5c4b3"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/libs/tests/data/tiny_set_internal.alignmentset.bam.bai" TimeStampedName="pacbio_index_bamindex-180402_164855926" UniqueId="a7cff240-7994-4b11-bd8c-1e44d9532127"/>
+			</pbbase:FileIndices>
+			<pbbase:ExternalResources>
+				<pbbase:ExternalResource MetaType="PacBio.ReferenceFile.ReferenceFastaFile" ResourceId="/pbi/dept/enzymology/Kristofor/SoftwareProjects/published_tools/biochemistry-toolkit/biotk/libs/tests/data/references/All4mers_InsertOnly.fasta" TimeStampedName="pacbio_referencefile_referencefastafile-180402_164855944" UniqueId="10a8af18-8b49-4da0-9595-8cb365851658"/>
+			</pbbase:ExternalResources>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>730454</pbds:TotalLength>
+		<pbds:NumRecords>2462</pbds:NumRecords>
+	</pbds:DataSetMetadata>
+</pbds:AlignmentSet>
