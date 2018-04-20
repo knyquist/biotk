@@ -1,9 +1,0 @@
-[console_scripts]
-bammend = biotk.tools.bammend.main:main
-curtail = biotk.scripts.rejectBasesByTime:main
-heatmap = biotk.scripts.plotHeatmap:main
-pbisave = biotk.scripts.extractIndexMetrics:main
-sequistory = biotk.scripts.screening_history:main
-taulysis = biotk.tools.taulysis.main:main
-windchip = biotk.scripts.filterChips:main
-
