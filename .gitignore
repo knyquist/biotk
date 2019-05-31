@@ -1,6 +1,8 @@
 #*#
 *~
-.DS_STORE
+*.DS_STORE
 *egg-info/
 .idea/
 .python-version
+biotk.egg-info/
+*.ipynb_checkpoints/
