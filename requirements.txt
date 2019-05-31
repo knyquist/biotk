@@ -1,11 +1,16 @@
-numpy
-plotly
-pandas
-pysam
-pbcore
-pbcommand
-docopt
-git+https://github.com/dalexander/PRmm.git
-git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/sl/pbreports.git
-git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/itg/pbinternal2.git
-git+http://bitbucket.pacificbiosciences.com:7990/scm/~mdsmith/primary-toolkit.git#egg=pricompare
+numpy==1.16.3
+plotly==2.6.0
+pandas==0.24.2
+pysam==0.15.2
+docopt==0.6.2
+
+# Pacbio modules
+git+http://bitbucket.pacificbiosciences.com:7990/scm/sl/pbcommand.git@a5fea53d32a9fddd0aba737bf3d5efc56e90d38c
+git+http://bitbucket.pacificbiosciences.com:7990/scm/sat/pbcore.git@244995390a8a5e9870ba8c3e4883a66484cda9b1
+git+https://github.com/dalexander/PRmm.git@74daa5eef78c61db5423dea4d2dd94bf6823854e
+git+http://bitbucket.pacificbiosciences.com:7990/scm/sl/pbreports.git@7d3d108230e52ecf2e862fe7a3f6236045bb0f17
+git+http://bitbucket.pacificbiosciences.com:7990/scm/itg/pbinternal2.git@3ade4dfaa23587efe8ad58f425a78bd5b387c124
+git+http://bitbucket.pacificbiosciences.com:7990/scm/~mdsmith/primary-toolkit.git@f94d837547d4a790b8f68622537b63094045f2e5
+#git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/sl/pbreports.git
+#git+http://knyquist@bitbucket.pacificbiosciences.com:7990/scm/itg/pbinternal2.git
+#git+http://bitbucket.pacificbiosciences.com:7990/scm/~mdsmith/primary-toolkit.git#egg=pricompare
