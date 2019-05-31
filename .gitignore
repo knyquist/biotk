@@ -3,3 +3,4 @@
 .DS_STORE
 *egg-info/
 .idea/
+.python-version
